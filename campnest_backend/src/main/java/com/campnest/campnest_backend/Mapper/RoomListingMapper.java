@@ -21,14 +21,17 @@ public class RoomListingMapper {
         dto.setAvailableFrom(entity.getAvailableFrom());
         dto.setIsActive(entity.getIsActive());
         dto.setOwnerId(entity.getOwner().getId()); // only ID
+        dto.setOwnerPhone(entity.getOwnerPhone());
+        dto.setWhatsappLink(entity.getWhatsappLink());
 
-        // ✅ Build WhatsApp link if owner has a phone number
-        User owner = entity.getOwner();
-        if (owner.getPhoneNumber() != null) {
-            String whatsappLink = "https://wa.me/" + owner.getPhoneNumber()
+// ✅ Build WhatsApp link using the listing's ownerPhone (not User model)
+        if (entity.getOwnerPhone() != null && !entity.getOwnerPhone().isEmpty()) {
+            String sanitizedPhone = entity.getOwnerPhone().replaceAll("[^0-9+]", "");
+            String whatsappLink = "https://wa.me/" + sanitizedPhone
                     + "?text=Hi%20I%20saw%20your%20room%20listing%20on%20CampNest";
             dto.setWhatsappLink(whatsappLink);
         }
+
 
         return dto;
     }

@@ -45,6 +45,10 @@ public class RoomListing {
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 
+    private String ownerPhone;
+    private String whatsappLink;
+
+
     public UUID getId() {
         return id;
     }
@@ -156,5 +160,12 @@ public class RoomListing {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public String getOwnerPhone() { return ownerPhone; }
+    public void setOwnerPhone(String ownerPhone) { this.ownerPhone = ownerPhone; }
+
+    public String getWhatsappLink() { return whatsappLink; }
+    public void setWhatsappLink(String whatsappLink) { this.whatsappLink = whatsappLink; }
+
 
 }

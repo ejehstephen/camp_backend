@@ -11,6 +11,7 @@ public class UserDTO {
     private Integer age;
     private String gender;
     private String phoneNumber;
+    private String profileImage;
 
     // --- Getters & Setters ---
     public UUID getId() {
@@ -58,4 +59,12 @@ public class UserDTO {
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
 }

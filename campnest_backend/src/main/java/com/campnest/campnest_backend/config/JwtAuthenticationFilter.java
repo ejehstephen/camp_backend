@@ -1,6 +1,5 @@
 package com.campnest.campnest_backend.config;
 
-
 import com.campnest.campnest_backend.dto.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collections;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -32,27 +31,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
+        // 🔐 Ensure the header exists and starts with Bearer
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
             try {
-                String email = jwtUtil.extractUsername(token);
-                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    // no roles for now, just basic auth
+                // 🧩 Extract user ID (UUID) from token claims
+                String userId = jwtUtil.extractUserId(token);
+                if (userId != null && !jwtUtil.isTokenExpired(token)) {
 
-                    UsernamePasswordAuthenticationToken auth =
+                    // ✅ Set authenticated user in context
+                    UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
-                                    email,
+                                    userId, // Principal is UUID
                                     null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_USER")) // 👈 give a default role
+                                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
                             );
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    System.out.println("✅ Authenticated user UUID: " + userId);
+                } else {
+                    System.out.println("⚠️ Token expired or invalid for user ID: " + userId);
                 }
             } catch (Exception e) {
-                System.out.println("⚠️ Invalid JWT: " + e.getMessage());
+                System.out.println("❌ JWT processing failed: " + e.getMessage());
             }
         }
 
+        // Continue with the filter chain
         filterChain.doFilter(request, response);
     }
 }

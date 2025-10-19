@@ -12,16 +12,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.campnest.campnest_backend.Mapper.RoomListingMapper.toDTO;
@@ -45,20 +43,31 @@ public class RoomListingController {
         return (String) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-    }
-
-    // Create new listing (owner is always current logged-in user)
-    @PostMapping
+    }// ✅ CREATE LISTING — supports multipart or JSON
+    @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity<?> createListing(
-            @RequestPart("listing") RoomListingDTO dto,
-            @RequestPart(value = "files", required = false) MultipartFile[] files
+            @RequestPart(value = "listing", required = false) RoomListingDTO dtoFromMultipart,
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            @RequestBody(required = false) RoomListingDTO dtoFromJson
     ) {
-        String email = getCurrentUserEmail();
-        User owner = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // 🔐 Extract authenticated user UUID (set by JwtAuthenticationFilter)
+        String userIdStr = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID userId = UUID.fromString(userIdStr);
+
+        // 🔍 Find user by ID instead of email
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        // Detect if JSON or multipart
+        RoomListingDTO dto = dtoFromMultipart != null ? dtoFromMultipart : dtoFromJson;
+        if (dto == null) {
+            return ResponseEntity.badRequest().body("Missing listing data");
+        }
 
         List<String> mediaUrls = new ArrayList<>();
-        if (files != null) {
+
+        // Upload attached files if present
+        if (files != null && files.length > 0) {
             for (MultipartFile file : files) {
                 try {
                     Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
@@ -70,24 +79,43 @@ public class RoomListingController {
                 }
             }
         }
+
+        // Keep any image URLs from DTO if no uploads
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            mediaUrls.addAll(dto.getImages());
+        }
+
+        // Create and save the listing
         RoomListing room = new RoomListing();
         room.setTitle(dto.getTitle());
         room.setDescription(dto.getDescription());
         room.setPrice(dto.getPrice());
         room.setLocation(dto.getLocation());
-        room.setImages(dto.getImages());
+        room.setImages(mediaUrls);
         room.setAmenities(dto.getAmenities());
         room.setRules(dto.getRules());
         room.setGenderPreference(dto.getGenderPreference());
         room.setAvailableFrom(dto.getAvailableFrom());
         room.setIsActive(dto.getIsActive());
         room.setOwner(owner);
+        room.setOwnerPhone(dto.getOwnerPhone());
+        room.setWhatsappLink(dto.getWhatsappLink());
+
 
         RoomListing saved = roomListingRepository.save(room);
         return ResponseEntity.ok(toDTO(saved));
     }
 
-    // Get all listings (open to everyone authenticated)
+
+    // ✅ Helper — extract current logged-in user using UUID from JWT
+    private User getCurrentUser() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String userId = (String) auth.getPrincipal(); // sub from JWT
+        return userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // ✅ GET all listings
     @GetMapping
     public List<RoomListingDTO> getAllListings() {
         return roomListingRepository.findAll()
@@ -96,7 +124,7 @@ public class RoomListingController {
                 .collect(Collectors.toList());
     }
 
-    // Get single listing
+    // ✅ GET single listing
     @GetMapping("/{id}")
     public RoomListingDTO getListingById(@PathVariable UUID id) {
         RoomListing room = roomListingRepository.findById(id)
@@ -104,7 +132,7 @@ public class RoomListingController {
         return toDTO(room);
     }
 
-    // Update listing (only if current user is the owner)
+    // ✅ UPDATE listing (owner only)
     @PutMapping("/{id}")
     public ResponseEntity<?> updateListing(@PathVariable UUID id, @RequestBody RoomListingDTO dto) {
         String email = getCurrentUserEmail();
@@ -131,33 +159,40 @@ public class RoomListingController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-
-    // Delete listing (only if current user is the owner)
+    // ✅ DELETE listing (owner only)
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteListing(@PathVariable UUID id) {
-        String email = getCurrentUserEmail();
+        // Get the authenticated user ID from JWT
+        String userIdStr = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID userId = UUID.fromString(userIdStr);
 
         return roomListingRepository.findById(id)
                 .map(existing -> {
-                    if (!existing.getOwner().getEmail().equals(email)) {
+                    UUID ownerId = existing.getOwner().getId();
+
+                    // ✅ Compare UUIDs instead of emails
+                    if (!ownerId.equals(userId)) {
                         return ResponseEntity.status(403).body("You can only delete your own listings");
                     }
+
                     roomListingRepository.delete(existing);
                     return ResponseEntity.ok("Listing deleted successfully");
                 })
                 .orElse(ResponseEntity.status(404).body("Listing not found"));
     }
 
+
+    // ✅ SEARCH listings with filters and pagination
     @GetMapping("/search")
     public ResponseEntity<?> searchListings(
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) String genderPreference,
-            @RequestParam(defaultValue = "0") int page,           // page number starts from 0
-            @RequestParam(defaultValue = "10") int size,          // items per page
-            @RequestParam(defaultValue = "createdAt") String sort,// sort field
-            @RequestParam(defaultValue = "desc") String order     // asc or desc
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "desc") String order
     ) {
         String loc = (location != null) ? location : "";
         Double min = (minPrice != null) ? minPrice : 0.0;

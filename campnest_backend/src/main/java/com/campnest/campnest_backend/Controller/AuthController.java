@@ -1,59 +1,93 @@
 package com.campnest.campnest_backend.Controller;
 
-import com.campnest.campnest_backend.dto.AuthRequest;
-import com.campnest.campnest_backend.dto.AuthResponse;
-import com.campnest.campnest_backend.dto.JwtUtil;
+import com.campnest.campnest_backend.config.AuthService;
+import com.campnest.campnest_backend.dto.*;
 import com.campnest.campnest_backend.model.User;
 import com.campnest.campnest_backend.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "*") // Allow Flutter access
 public class AuthController {
 
+    private final AuthService authService;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+    public AuthController(AuthService authService, UserRepository userRepository, JwtUtil jwtUtil) {
+        this.authService = authService;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
     }
 
+    // ✅ REGISTER — sends OTP via email
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already in use");
-        }
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        User user = authService.registerUser(
+                request.getEmail(),
+                request.getPassword(),
+                request.getName(),
+                request.getSchool(),
+                request.getAge(),
+                request.getGender()
+        );
 
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setName("Default Name"); // later allow custom
-        user.setSchool("Unknown");
-        user.setAge(18);
-        user.setGender("other");
+        String token = ""; // generate token if needed
+        String message = "Registration successful. Check your email for a 6-digit code.";
 
-        userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        AuthResponseWithUser response = new AuthResponseWithUser(message, token, user);
+        return ResponseEntity.ok(response);
     }
 
+
+    // ✅ VERIFY EMAIL OTP
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyEmail(@RequestBody VerifyRequest request) {
+        try {
+            String message = authService.verifyOtp(request.getUuid(), request.getCode());
+
+            // Generate JWT token after successful verification
+            User user = authService.getUserByUuid(request.getUuid());
+            String token = jwtUtil.generateToken(user);
+
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
+    // ✅ RESEND OTP
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody VerifyRequest request) {
+        try {
+            authService.resendOtp(request.getUuid());
+            return ResponseEntity.ok("OTP resent successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
+    // ✅ LOGIN — only if verified
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            return ResponseEntity.status(401).build();
+        if (!user.isEnabled()) {
+            return ResponseEntity.status(403).body("Please verify your email before logging in.");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        if (!authService.passwordMatches(request.getPassword(), user.getPasswordHash())) {
+            return ResponseEntity.status(401).body("Invalid credentials");
+        }
+
+        String token = jwtUtil.generateToken(user);
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }

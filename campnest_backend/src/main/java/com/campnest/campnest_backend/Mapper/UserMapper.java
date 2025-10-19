@@ -15,6 +15,7 @@ public class UserMapper {
         dto.setAge(user.getAge());
         dto.setGender(user.getGender());
         dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setProfileImage(user.getProfileImage());
         return dto;
     }
 }
