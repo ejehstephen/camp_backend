@@ -1,3 +1,4 @@
 #!/bin/bash
-cd campnest_backend
-./mvnw spring-boot:run
+chmod +x mvnw
+./mvnw clean package -DskipTests
+java -jar target/*.jar
