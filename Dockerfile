@@ -14,7 +14,8 @@ FROM eclipse-temurin:21-jdk-jammy AS runtime
 WORKDIR /app
 
 # Copy only the built JAR from the build stage
-COPY  target/campnest_backend-*.jar app.jar
+COPY --from=build /app/target/campnest_backend-*.jar app.jar
+
 
 # Expose the port your app uses
 EXPOSE 8080
