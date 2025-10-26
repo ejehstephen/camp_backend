@@ -1,40 +1,33 @@
-# flyctl launch added from .gitignore
-**\campnest_backend\HELP.md
-**\target
-.mvn\wrapper\maven-wrapper.jar
-!**\**\src\main\**\target
-!**\**\src\test\**\target
+# Maven target folders
+target/
+**/target/
 
-### STS ###
-**\.apt_generated
-**\.classpath
-**\.factorypath
-**\.project
-**\.settings
-**\.springBeans
-**\.sts4-cache
+# Maven wrapper jar
+.mvn/wrapper/maven-wrapper.jar
 
-### IntelliJ IDEA ###
-**\.idea
-**\*.iws
-**\*.iml
-**\*.ipr
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+*.classpath
+*.project
+*.settings/
+*.springBeans/
+.sts4-cache/
 
-### NetBeans ###
-nbproject\private
-nbbuild
-dist
-nbdist
-.nb-gradle
-**\build
-!**\**\src\main\**\build
-!**\**\src\test\**\build
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
 
-### VS Code ###
-**\.vscode
+# VS Code
+.vscode/
 
-# flyctl launch added from .idea\.gitignore
-# Default ignored files
-.idea\shelf
-.idea\workspace.xml
+# Logs
+*.log
+
+# Flyctl / deployment
 fly.toml
