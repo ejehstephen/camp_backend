@@ -8,14 +8,13 @@ COPY pom.xml .
 COPY src ./src
 
 RUN chmod +x mvnw
-RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Run the app (slim runtime image)
 FROM eclipse-temurin:21-jdk-jammy AS runtime
 WORKDIR /app
 
 # Copy only the built JAR from the build stage
-COPY --from=build /app/target/campnest_backend-*.jar app.jar
+COPY  target/campnest_backend-*.jar app.jar
 
 # Expose the port your app uses
 EXPOSE 8080
