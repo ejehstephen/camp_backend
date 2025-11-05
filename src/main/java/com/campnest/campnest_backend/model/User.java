@@ -43,8 +43,20 @@ public class User {
     private boolean enabled = false;
 
     // --- Hooks to handle normalization and timestamps ---
+
     @PrePersist
+    private void prePersist() {
+        if (this.profileImage == null || this.profileImage.isEmpty()) {
+            this.profileImage = "https://example.com/default-profile.png";
+        }
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
     @PreUpdate
+    private void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
     private void normalizeFields() {
         if (this.gender != null) {
             this.gender = this.gender.trim().toLowerCase();
@@ -57,11 +69,6 @@ public class User {
         }
         if (this.school != null) {
             this.school = this.school.trim();
-        }
-
-        // Default profile image if none provided
-        if (this.profileImage == null || this.profileImage.isEmpty()) {
-            this.profileImage = "https://example.com/default-profile.png";
         }
 
         // Update timestamp
