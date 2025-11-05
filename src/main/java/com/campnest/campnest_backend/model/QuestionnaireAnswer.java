@@ -24,6 +24,18 @@ public class QuestionnaireAnswer {
     @CollectionTable(name = "answer_values", joinColumns = @JoinColumn(name = "answer_id"))
     private List<String> answers;
 
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    @Column(nullable = false)
+    private String text;
+
     // Getters & Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
