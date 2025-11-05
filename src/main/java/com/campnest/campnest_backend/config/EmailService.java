@@ -9,7 +9,7 @@ import java.net.http.HttpResponse;
 @Service
 public class EmailService {
 
-    // Get your API key from environment variables
+    // Load MailerSend API Key from environment variables or application.properties
     private static final String API_KEY = System.getenv("MAILERSEND_API_KEY");
 
     public void sendOtp(String to, String otp) {
@@ -17,7 +17,7 @@ public class EmailService {
             String json = """
                 {
                     "from": {
-                        "email": "no-reply@trial.mailersend.com",
+                        "email": "no-reply@test-3m5jgro153xgdpyo.mlsender.net",
                         "name": "CampNest"
                     },
                     "to": [
@@ -40,6 +40,7 @@ public class EmailService {
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            // Print server response for debugging
             System.out.println("✅ MailerSend Response: " + response.body());
 
         } catch (Exception e) {
