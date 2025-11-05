@@ -96,6 +96,7 @@ public class UserController {
     @PostMapping("/profile/upload")
     public ResponseEntity<String> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Auth principal: " + authentication.getPrincipal());
 
         // Get userId or user email depending on how your auth works
         UUID userId;
