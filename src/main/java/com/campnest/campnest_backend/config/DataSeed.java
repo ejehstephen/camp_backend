@@ -40,10 +40,6 @@ public class DataSeed {
                         "Do you currently have an apartment or are you looking to join one?",
                         List.of("I have an apartment", "I’m looking to join one")),
 
-                createQuestion("0e34a447-836c-4046-8b93-62eaf37dd85a",
-                        "What is your gender?",
-                        List.of("Male", "Female", "Other")),
-
                 createQuestion("520f28f5-461b-4a9b-ad2b-ca63a7615fc9",
                         "What gender of roommate would you prefer?",
                         List.of("Male", "Female", "Any")),
@@ -66,7 +62,7 @@ public class DataSeed {
 
                 createQuestion("a110759a-96dc-489f-928a-2199a8f4aad2",
                         "What are your top interests/hobbies?",
-                        List.of("Music", "Movies", "Sports", "Reading", "Traveling", "Gaming", "Cooking")),
+                        List.of("Music", "Movies", "Sports", "Reading", "Gaming", "Cooking")),
 
                 createQuestion("2e802aa8-d396-46b7-98fc-ccb0b850bc5d",
                         "Do you have any allergies or dietary restrictions?",
