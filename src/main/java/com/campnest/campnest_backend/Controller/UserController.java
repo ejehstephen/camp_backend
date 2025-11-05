@@ -96,31 +96,40 @@ public class UserController {
     @PostMapping("/profile/upload")
     public ResponseEntity<String> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = (UUID) authentication.getPrincipal(); // This assumes your authentication principal is the UUID
+
+        // Get userId or user email depending on how your auth works
+        UUID userId;
+        try {
+            // If you store the UUID directly as principal
+            userId = UUID.fromString(authentication.getPrincipal().toString());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("❌ Invalid authentication principal.");
+        }
 
         if (userId == null) {
-            return ResponseEntity.status(401).body("User not authenticated.");
+            return ResponseEntity.status(401).body("❌ User not authenticated.");
         }
 
         try {
-            // Upload file to Cloudinary
+            // Upload image to Cloudinary
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "resource_type", "image",
                             "folder", "profile-pictures/" + userId
                     ));
+
             String imageUrl = (String) uploadResult.get("secure_url");
 
-            // Find the user and update their profile picture
+            // Fetch user and update their profile image
             return userRepository.findById(userId).map(user -> {
                 user.setProfileImage(imageUrl);
-                userRepository.save(user); // Use save to update the existing user
+                userRepository.save(user);
                 return ResponseEntity.ok(imageUrl);
-            }).orElseGet(() -> ResponseEntity.notFound().build());
+            }).orElseGet(() -> ResponseEntity.status(404).body("❌ User not found."));
 
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("❌ Upload failed");
+            return ResponseEntity.internalServerError().body("❌ Upload failed: " + e.getMessage());
         }
     }
 }
