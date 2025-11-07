@@ -1,35 +1,34 @@
 package com.campnest.campnest_backend.config;
 
-
-
 import com.campnest.campnest_backend.model.QuestionnaireAnswer;
 import com.campnest.campnest_backend.model.QuestionnaireQuestion;
 import com.campnest.campnest_backend.repository.QuestionnaireAnswerRepository;
 import com.campnest.campnest_backend.repository.QuestionnaireQuestionRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
 @Component
-
 public class DataSeed {
 
     private final QuestionnaireQuestionRepository questionRepository;
-    private final QuestionnaireAnswerRepository optionRepository;
+    private final QuestionnaireAnswerRepository answerRepository;
 
     public DataSeed(QuestionnaireQuestionRepository questionRepository,
-                    QuestionnaireAnswerRepository optionRepository) {
+                    QuestionnaireAnswerRepository answerRepository) {
         this.questionRepository = questionRepository;
-        this.optionRepository = optionRepository;
+        this.answerRepository = answerRepository;
     }
 
     @PostConstruct
     public void seedData() {
-        if (questionRepository.count() > 0) {
-            System.out.println("✅ Questionnaire already seeded, skipping...");
+        System.out.println("🌍 Checking questionnaire data...");
+
+        long count = questionRepository.count();
+        if (count > 0) {
+            System.out.println("✅ Questionnaire already seeded (" + count + " questions found). Skipping...");
             return;
         }
 
@@ -45,8 +44,8 @@ public class DataSeed {
                         List.of("Male", "Female", "Any")),
 
                 createQuestion("d23962bf-d434-4123-b29c-5b949c06daeb",
-                        "What is your preferred budget range (in ₦)?",
-                        List.of("₦50k–₦100k", "₦100k–₦200k", "₦200k+", "Flexible")),
+                        "What is your preferred budget range (in Naira)?",
+                        List.of("50k–100k", "100k–200k", "200k+", "Flexible")),
 
                 createQuestion("493b6223-521f-40e4-90a5-011504702e57",
                         "Are you a student or a working professional?",
@@ -61,7 +60,7 @@ public class DataSeed {
                         List.of("Yes", "No", "Occasionally")),
 
                 createQuestion("a110759a-96dc-489f-928a-2199a8f4aad2",
-                        "What are your top interests/hobbies?",
+                        "What are your top interests or hobbies?",
                         List.of("Music", "Movies", "Sports", "Reading", "Gaming", "Cooking")),
 
                 createQuestion("2e802aa8-d396-46b7-98fc-ccb0b850bc5d",
@@ -74,19 +73,19 @@ public class DataSeed {
     }
 
     private QuestionnaireQuestion createQuestion(String id, String questionText, List<String> options) {
-        QuestionnaireQuestion q = new QuestionnaireQuestion();
-        q.setId(UUID.fromString(id));
-        q.setQuestion(questionText);
-        q.setType("single");
+        QuestionnaireQuestion question = new QuestionnaireQuestion();
+        question.setId(UUID.fromString(id));
+        question.setQuestion(questionText);
+        question.setType("single");
 
-        QuestionnaireQuestion saved = questionRepository.save(q);
+        QuestionnaireQuestion saved = questionRepository.save(question);
 
-        options.forEach(opt -> {
-            QuestionnaireAnswer o = new QuestionnaireAnswer();
-            o.setText(opt);
-            o.setQuestion(saved);
-            optionRepository.save(o);
-        });
+        for (String opt : options) {
+            QuestionnaireAnswer answer = new QuestionnaireAnswer();
+            answer.setText(opt);
+            answer.setQuestion(saved);
+            answerRepository.save(answer);
+        }
 
         return saved;
     }
