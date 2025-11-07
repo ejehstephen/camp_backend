@@ -36,7 +36,7 @@ public class AuthController {
                 request.getGender()
         );
 
-        String token = ""; // generate token if needed
+        String token = jwtUtil.generateToken(user); // generate token if needed
         String message = "Registration successful. Check your email for a 6-digit code.";
 
         AuthResponseWithUser response = new AuthResponseWithUser(message, token, user);

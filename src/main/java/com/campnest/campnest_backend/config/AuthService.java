@@ -45,12 +45,12 @@ public class AuthService {
 
 //        user.setPhoneNumber(phoneNumber);
 //        user.setProfileImage(profileImage);
-        user.setEnabled(false);
+        user.setEnabled(true);
 
         userRepository.save(user);
 
         // 🔹 Send OTP for email verification
-        sendOtpToUser(user);
+//        sendOtpToUser(user);
         return user;
     }
 
