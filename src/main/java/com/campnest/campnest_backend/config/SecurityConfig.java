@@ -28,12 +28,19 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(java.util.List.of("*")); // Allow all origins
+                    corsConfig.setAllowedOrigins(java.util.List.of(
+                            "http://localhost:5000",         // if testing locally
+                            "http://127.0.0.1:5000",
+                            "http://localhost:3000",
+                            "https://campnest-web.onrender.com", // your Flutter web app (if hosted)
+                            "https://camp-backend-27sb.onrender.com" // backend itself
+                    ));
                     corsConfig.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
                     corsConfig.setAllowedHeaders(java.util.List.of("*"));
-                    corsConfig.setAllowCredentials(true); // Allow credentials if needed
+                    corsConfig.setAllowCredentials(true);
                     return corsConfig;
                 }))
+
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
