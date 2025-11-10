@@ -14,13 +14,25 @@ public class QuestionnaireAnswerMapper {
         dto.setAnswers(answer.getAnswers());
         return dto;
     }
-
     // DTO -> Entity
     public static QuestionnaireAnswer toEntity(QuestionnaireAnswerDTO dto, User user, QuestionnaireQuestion question) {
         QuestionnaireAnswer answer = new QuestionnaireAnswer();
         answer.setUser(user);
         answer.setQuestion(question);
+
+        // ✅ Save the selected options
         answer.setAnswers(dto.getAnswers());
+
+        // ✅ Fix: set "text" value for the DB column (avoid null)
+        if (dto.getAnswers() != null && !dto.getAnswers().isEmpty()) {
+            // Join all answers into one string, e.g. "Music, Movies"
+            answer.setText(String.join(", ", dto.getAnswers()));
+        } else {
+            // If user didn’t select anything, prevent null crash
+            answer.setText("N/A");
+        }
+
         return answer;
     }
+
 }
