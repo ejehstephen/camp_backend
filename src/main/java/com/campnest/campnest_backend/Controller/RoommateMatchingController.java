@@ -243,23 +243,28 @@ public class RoommateMatchingController {
         }
 
         return score;
-    }private boolean hasApartment(List<QuestionnaireAnswer> answers) {
+    }
+    private boolean hasApartment(List<QuestionnaireAnswer> answers) {
         return answers.stream()
                 .anyMatch(a -> a.getQuestion().getQuestion().toLowerCase().contains("apartment") &&
                         a.getAnswers().stream().anyMatch(ans ->
-                                ans.toLowerCase().contains("I have an apartment") ||
-                                        ans.toLowerCase().contains("own an apartment") ||
-                                        ans.toLowerCase().contains("need a roommate")));
+                                ans.toLowerCase().contains("have an apartment") ||
+                                        ans.toLowerCase().contains("rent my property") ||
+                                        ans.toLowerCase().contains("own an apartment")
+                        ));
     }
 
     private boolean isLookingForApartment(List<QuestionnaireAnswer> answers) {
         return answers.stream()
                 .anyMatch(a -> a.getQuestion().getQuestion().toLowerCase().contains("apartment") &&
                         a.getAnswers().stream().anyMatch(ans ->
-                                ans.toLowerCase().contains(" want to move in with someone") ||
-                                        ans.toLowerCase().contains("looking for") ||
-                                        ans.toLowerCase().contains("I do not have an apartment")));
+                                ans.toLowerCase().contains("looking for") ||
+                                        ans.toLowerCase().contains("join one") ||
+                                        ans.toLowerCase().contains("want to move in") ||
+                                        ans.toLowerCase().contains("am looking for a place")
+                        ));
     }
+
 
 
     private String getPreferredGender(List<QuestionnaireAnswer> answers) {
