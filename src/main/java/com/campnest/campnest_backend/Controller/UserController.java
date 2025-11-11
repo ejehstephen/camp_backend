@@ -74,10 +74,13 @@ public class UserController {
         if (dto.getAge() != null) user.setAge(dto.getAge());
         if (dto.getGender() != null) user.setGender(dto.getGender());
         if (dto.getEmail() != null) user.setEmail(dto.getEmail());
+        if (dto.getPhoneNumber() != null) user.setPhoneNumber(dto.getPhoneNumber());       // ✅ add this
+        if (dto.getProfileImage() != null) user.setProfileImage(dto.getProfileImage());    // ✅ add this
 
         User updated = userRepository.save(user);
         return ResponseEntity.ok(UserMapper.toDTO(updated));
     }
+
 
     // 🔹 Delete user (must be yourself)
     @DeleteMapping("/{id}")
