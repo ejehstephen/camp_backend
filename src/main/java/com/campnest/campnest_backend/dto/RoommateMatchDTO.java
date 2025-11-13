@@ -12,6 +12,9 @@ public class RoommateMatchDTO {
     private Integer age;
     private String school;
     private String gender;
+    private String phone;
+    private String whatsappLink;
+
     private Double budget;
     private Integer compatibilityScore;
     private List<String> commonInterests;
@@ -38,4 +41,20 @@ public class RoommateMatchDTO {
     public void setCommonInterests(List<String> commonInterests) { this.commonInterests = commonInterests; }
     public Map<String, String> getPreferences() { return preferences; }
     public void setPreferences(Map<String, String> preferences) { this.preferences = preferences; }
+
+    public String getWhatsappLink() {
+        return whatsappLink;
+    }
+
+    public void setWhatsappLink(String whatsappLink) {
+        this.whatsappLink = whatsappLink;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 }

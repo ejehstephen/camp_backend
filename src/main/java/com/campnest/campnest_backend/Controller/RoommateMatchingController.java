@@ -17,7 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -128,6 +130,17 @@ public class RoommateMatchingController {
                     dto.setAge(u.getAge());
                     dto.setSchool(u.getSchool());
                     dto.setGender(u.getGender());
+
+
+                    // ✅ Add WhatsApp contact
+                    dto.setPhone(u.getPhoneNumber());
+                    if (u.getPhoneNumber() != null && !u.getPhoneNumber().isEmpty()) {
+                        String sanitizedPhone = u.getPhoneNumber().replaceAll("[^0-9+]", "");
+                        String whatsappLink = "https://wa.me/" + sanitizedPhone
+                                + "?text=Hi%20" + UriUtils.encodePathSegment(u.getName(), StandardCharsets.UTF_8)
+                                + ",%20I%20found%20you%20on%20CampNest%20as%20a%20potential%20roommate!";
+                        dto.setWhatsappLink(whatsappLink);
+                    }
 
                     List<QuestionnaireAnswer> otherAnswers = answerRepository.findByUserId(u.getId());
                     int score = computeCompatibility(currentUser, u, currentAnswers, otherAnswers);
