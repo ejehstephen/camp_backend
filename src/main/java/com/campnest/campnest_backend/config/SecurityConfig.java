@@ -33,6 +33,7 @@ public class SecurityConfig {
                             "http://127.0.0.1:5000",
                             "http://localhost:3000",
                             "https://campnest-web.onrender.com", // your Flutter web app (if hosted)
+                            "https://chat-9e2ce.web.app",
                             "https://camp-backend-27sb.onrender.com" // backend itself
                     ));
                     corsConfig.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
