@@ -28,37 +28,40 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(java.util.List.of(
-                            "http://localhost:5000",         // if testing locally
-                            "http://127.0.0.1:5000",
-                            "http://localhost:3000",
-                            "https://campnest-web.onrender.com", // your Flutter web app (if hosted)
-                            "https://chat-9e2ce.web.app",
-                            "https://camp-backend-27sb.onrender.com" // backend itself
+
+                    // 🔥 Local development - supports any port
+                    corsConfig.addAllowedOriginPattern("http://localhost:*");
+                    corsConfig.addAllowedOriginPattern("http://127.0.0.1:*");
+
+                    // 🔥 Production frontend
+                    corsConfig.addAllowedOrigin("https://chat-9e2ce.web.app");
+                    corsConfig.addAllowedOrigin("https://chat-9e2ce.firebaseapp.com");
+                    corsConfig.addAllowedOrigin("https://campnest-web.onrender.com");
+
+                    // Allowed methods + headers
+                    corsConfig.setAllowedMethods(java.util.List.of(
+                            "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
                     ));
-                    corsConfig.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
                     corsConfig.setAllowedHeaders(java.util.List.of("*"));
                     corsConfig.setAllowCredentials(true);
+
                     return corsConfig;
                 }))
 
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints - no authentication required
-                        .requestMatchers("/auth/**").permitAll() // login, register, verify, etc.
-                        .requestMatchers("/", "/health", "/status").permitAll() // root and health endpoints
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Swagger
-                        .requestMatchers("/error").permitAll() // Spring Boot error page
-
-                        // Protected endpoints - require authentication
-                        .requestMatchers("/api/**").authenticated() // all API endpoints require JWT
-
-                        // Default behavior for any other request
-                        .anyRequest().permitAll() // Changed from denyAll() to permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/", "/health", "/status").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-}
+
