@@ -30,8 +30,8 @@ public class SecurityConfig {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
 
                     // 🔥 Local development - supports any port
-//                    corsConfig.addAllowedOriginPattern("http://localhost:*");
-//                    corsConfig.addAllowedOriginPattern("http://127.0.0.1:*");
+                    corsConfig.addAllowedOriginPattern("http://localhost:*");
+                    corsConfig.addAllowedOriginPattern("http://127.0.0.1:*");
 
                     // 🔥 Production frontend
                     corsConfig.addAllowedOrigin("https://chat-9e2ce.web.app");
