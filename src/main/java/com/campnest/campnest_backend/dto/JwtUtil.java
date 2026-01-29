@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -14,18 +15,19 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // 🔐 Strong secret key (use env var or config file in production)
-    private static final String SECRET = "mysupersecureandlongsecretkey1234567890";
+    private final SecretKey key;
 
-    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     // ✅ Generate JWT with user ID as subject (UUID) and email claim
     public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getId().toString()) // store UUID as subject
+                .setSubject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 hours
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
